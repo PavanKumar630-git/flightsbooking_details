@@ -374,3 +374,7 @@ def get_spicejet_booking_details(pnr: str = Query(...), lastname: str = Query(..
         return response.json()
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/")
+def home():
+    return {"message": "Flight Booking API'S is working!"}
