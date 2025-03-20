@@ -37,6 +37,36 @@ def get_akasa_token():
         print(f"Error: {e}")
         return None
 
+
+def get_airindia_oauth_token():
+    headers = {
+        'accept': 'application/json',
+        'accept-language': 'en-US,en;q=0.9',
+        'content-type': 'application/x-www-form-urlencoded',
+        'origin': 'https://travel.airindia.com',
+        'priority': 'u=1, i',
+        'referer': 'https://travel.airindia.com/',
+        'sec-ch-ua': '"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-site',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
+    }
+    
+    data = {
+        'client_id': 'DCkj8EM4xxOUnINtcYcUhGXVfP2KKUzf',
+        'client_secret': 'QWgBtA2ARMfdAf1g',
+        'grant_type': 'client_credentials',
+        'guest_office_id': 'DELAI08AA',
+    }
+    
+    response = requests.post('https://api-des.airindia.com/v1/security/oauth2/token', headers=headers, data=data)
+    
+    return response.json()
+
+
 # Route for fetching booking details
 @app.route('/akasaair_bookingdetails', methods=['GET'])
 def get_akasaair_booking_details():
@@ -81,8 +111,8 @@ def get_akasaair_booking_details():
 
 
 # Route for fetching booking details
-@app.route('/airindia_bookingdetails', methods=['GET'])
-def get_airindia_booking_details():
+@app.route('/airindia_express_bookingdetails', methods=['GET'])
+def get_airindia_express_booking_details():
     record_locator = request.args.get('pnr')  # Default if not provided
     last_name = request.args.get('lastname')  # Default if not provided
     # data = request.get_json()
@@ -126,6 +156,50 @@ def get_airindia_booking_details():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Route for fetching booking details
+@app.route('/airindia_bookingdetails', methods=['GET'])
+def get_airindia_booking_details():
+    record_locator = request.args.get('pnr')  # Default if not provided
+    last_name = request.args.get('lastname')  # Default if not provided
+    # data = request.get_json()
+    # # record_locator = data.get('recordLocator', 'F4EMPS')  # Default if not provided
+    # # last_name = data.get('lastName', 'bansal')  # Default if not provided
+    # record_locator = data.get('pnr')  # Default if not provided
+    # last_name = data.get('lastname')  # Default if not provided
+    get_airindia_tokens = get_airindia_oauth_token()
+    headers = {
+    'accept': 'application/json',
+    'accept-language': 'en-US,en;q=0.9',
+    # 'ama-client-ref': '91c9e175-4c95-49b3-9c61-647a5a415659:0',
+    'authorization': '{0} {1}'.format(get_airindia_tokens['token_type'],get_airindia_tokens['access_token']),
+    'cache-control': 'max-age=0',
+    'content-type': 'application/json',
+    'origin': 'https://travel.airindia.com',
+    'priority': 'u=1, i',
+    'referer': 'https://travel.airindia.com/',
+    'sec-ch-ua': '"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-site',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
+    # 'x-d-token': '3:DXTSyvsGoRZqn1HNUiL9cQ==:RAyF3p+z7ZJdL5/UWSvnn6aBBbqiN7Eh1TIY9aaHdACKuLFcKEvD4OCbwtjPE7nEWv2GRC6obFYgjzFoBZL4a/zIaBKVI10hy5/8x/rsSaZIem9OjPAD7s8pz5srP/mxqyK/oSQm0Se/DQyzxSoaK1yEXiy1ZFbk/aF8miEXLL8hzCYG5d+pRADNfujA0lV50WybPfKAcjH3WRwKCGFxBssHzX4x1lsndptcCBK2+W07l4LSGKTbmhco4lD2Aq84Rse89nMyX/Xi4AOTCA/GyQxa36VhiwsGQCsJtYg3I6bJ8zEMLyvZ/cxFHGphPRsqlCBQBRHcUOm7owj/o4jlgWauWXZvopWqHTeXsExXz16LQ1T8F3i2HYewQ7Iak9Q/wPKIMGCYdrk42hq14urcrcb6mlf42t/ZTZiJy/0NL+zCq1R8n2g4g/i0UTWtGAXF47VSOtBCBXvL4kLZtuPr2oUWhcxfPTW7jePLZ1ipv/JWdeda+jHiNoHx2aG8sl/YGGFuGDCsbT8p3O4Pr0AqToSVF4GkzD8k+a+oWmsdcI4zsXwKGd2xAzokAYjgg4qdMQumOTOa6navrWHizDJmSpjCpTU6+8z7q+y9340JVYbjKr6k34UQUDrq8FsJMxF1dv0Jn7Y7/OesUeb3avGLZwjFOzgTrJxy5Ptiu5OLuBe0dAdeKlR7vjXBnm7JVabpYqegfl5kMzzhRRSeJDkSTohX0RVWPq/RwD/yCqMyM+3i3lP5qEpHf7AjAgHCSeynx6XLEk3gAGxq47c4BPtLafR2wgfzhgWyWFoo4IVdAoTOfHAp2r/BkKBwvKSIWHc3qqcQHN1K/vn67t7dyqpFW5sl4YAYRC9SMSGv6dwIbp6N961U2ytyTpshmADsOs16VnDDAQqgFwB9e3YRPruzXivGmUgTI9oaB7Hyfv+epfo=:NdvmoWO07tRYma62+1caWxo1vyMCgURt0xNsrGRxigM=',
+    }
+
+    params = {
+        'lastName': last_name,
+        'showOrderEligibilities': 'true',
+        'checkServicesAndSeatsIssuanceCurrency': 'false',
+    }
+
+    try:
+        response = requests.get('https://api-des.airindia.com/v2/purchase/orders/{0}'.format(record_locator), params=params, headers=headers)
+
+        return jsonify(response.json())
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Route for fetching booking details
 @app.route('/spicejet_bookingdetails', methods=['GET'])
